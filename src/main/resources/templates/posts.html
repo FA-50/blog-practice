@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 목록</title>
+</head>
+<body>
+
+<h1>게시글 목록</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>번호</th>
+        <th>제목</th>
+        <th>내용</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="post : ${posts}">
+        <td th:text="${post.getPostId()}">1</td>
+        <td>
+            <a th:href="@{/posts/{id}(id=${post.getPostId()})}"
+               th:text="${post.getTitle()}">
+                제목
+            </a>
+        </td>
+        <td th:text="${post.getContent()}">내용</td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

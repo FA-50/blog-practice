@@ -50,7 +50,8 @@ public class Post {
 //    private Category category;
 
     @Builder
-    public Post(String title, String content, Visibility visibility /*, Category category*/ ) {
+    public Post(Long postId, String title, String content, Visibility visibility /*, Category category*/ ) {
+        this.postId = postId;
         this.title = title;
         this.content = content;
         this.visibility = visibility;

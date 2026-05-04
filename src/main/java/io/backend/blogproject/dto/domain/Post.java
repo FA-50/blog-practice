@@ -1,5 +1,7 @@
 package io.backend.blogproject.dto.domain;
 
+import io.backend.blogproject.constant.Status;
+import io.backend.blogproject.constant.Visibility;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

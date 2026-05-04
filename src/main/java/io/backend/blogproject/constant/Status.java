@@ -1,4 +1,4 @@
-package io.backend.blogproject.dto.domain;
+package io.backend.blogproject.constant;
 
 public enum Status {
     ACTIVATED,

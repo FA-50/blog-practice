@@ -9,6 +9,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -48,6 +51,10 @@ public class Post {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable =true)
     private Category category;
+
+    @OneToMany(mappedBy = "post")
+    private List<Comment> comments = new ArrayList<>();
+
 
     @Builder
     public Post(String title, String content, Visibility visibility, Category category ) {
@@ -89,6 +96,10 @@ public class Post {
         this.content = content;
         this.visibility = visibility;
         this.category = category;
+    }
+
+    public void mappedByComment(Comment comment){
+        this.comments.add(comment);
     }
 
     public void increaseViewCount(){

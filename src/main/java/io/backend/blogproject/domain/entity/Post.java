@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -44,6 +46,11 @@ public class Post {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Status status;
+
+    @OneToMany(mappedBy = "post")
+    private List<Comment> comments = new ArrayList<>();
+
+
 //
 //    @ManyToOne
 //    @JoinColumn(name = "category_id", nullable =true)
@@ -89,6 +96,10 @@ public class Post {
         this.content = content;
         this.visibility = visibility;
         //this.category = category;
+    }
+
+    public void mappedByComment(Comment comment){
+        this.comments.add(comment);
     }
 
     public void increaseViewCount(){

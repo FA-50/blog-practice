@@ -1,6 +1,7 @@
 package io.backend.blogproject.dto.domain;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @Table(name = "Post")
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post {
 
     @Id
@@ -43,7 +44,7 @@ public class Post {
     private Status status;
 //
 //    @ManyToOne
-//    @JoinColumn(name = "category_id", nullable =false)
+//    @JoinColumn(name = "category_id", nullable =true)
 //    private Category category;
 
     @Builder

@@ -1,5 +1,7 @@
 package io.backend.blogproject.configuration;
 
+import io.backend.blogproject.domain.entity.Comment;
+import io.backend.blogproject.domain.entity.Post;
 import org.hibernate.jpa.HibernatePersistenceConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +28,10 @@ public class EntityManagerFactoryConfiguration {
 			.jdbcDriver(driverClassName)
 			.jdbcUrl(url)
 			.jdbcUsername(username)
-			.jdbcPassword("");
+			.jdbcPassword("")
+			.managedClass(Comment.class)
+			.managedClass(Post.class)
+			.property("hibernate.hbm2ddl.auto", "create-drop");
 
 		return hpc.createEntityManagerFactory();
 	}

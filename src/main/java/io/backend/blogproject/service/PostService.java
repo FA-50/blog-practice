@@ -8,7 +8,6 @@ import io.backend.blogproject.domain.dto.PostListResponse;
 import io.backend.blogproject.domain.dto.PostUpdateRequest;
 import io.backend.blogproject.domain.entity.Category;
 import io.backend.blogproject.domain.entity.Post;
-import io.backend.blogproject.repository.CategoryRepository;
 import io.backend.blogproject.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,7 @@ import java.util.List;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final CategoryRepository categoryRepository;
+    //private final CategoryRepository categoryRepository;
 
     public Long createPost(PostCreateRequest request){
         Category category = findCategoryOrNull(request.getCategoryId());
@@ -88,9 +87,9 @@ public class PostService {
             return null;
         }
 
-        return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다. id=" + categoryId));
+//        return categoryRepository.findById(categoryId)
+//                .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다. id=" + categoryId));
 
-        //return null;
+        return null;
     }
 }

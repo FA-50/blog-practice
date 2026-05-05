@@ -2,6 +2,7 @@ package io.backend.blogproject.controller;
 
 import io.backend.blogproject.constant.Visibility;
 import io.backend.blogproject.domain.dto.PostCreateRequest;
+import io.backend.blogproject.domain.dto.PostUpdateRequest;
 import io.backend.blogproject.domain.entity.Post;
 import io.backend.blogproject.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class PostController {
 
     private final PostService postService;
 
+    // 조회
     @GetMapping("/posts")
     public String list(Model model){
         model.addAttribute("posts", postService.getPublicPosts());
@@ -27,6 +29,7 @@ public class PostController {
         return "posts";
     }
 
+    //단건조회
     @GetMapping("/posts/{postId}")
     public String detail(@PathVariable Long postId, Model model){
 
@@ -35,6 +38,7 @@ public class PostController {
         return "post_detail";
     }
 
+    // 생성
     @GetMapping("posts/new")
     public String createForm(){
         return "post_form";
@@ -45,6 +49,20 @@ public class PostController {
         Long postId = postService.createPost(request);
         return "redirect:/posts/" + postId;
     }
+
+    // 수정
+    @GetMapping("/posts/{postId}/edit")
+    public String updateForm(@PathVariable Long postId, Model model) {
+        model.addAttribute("post", postService.getPostForEdit(postId));
+        return "post_edit";
+    }
+
+    @PostMapping("posts/{postId}/edit")
+    public String updateForm(@PathVariable Long postId, PostUpdateRequest request){
+        postService.updatePost(postId, request);;
+        return "redirect:/posts/"+postId;
+    }
+
 
 
 

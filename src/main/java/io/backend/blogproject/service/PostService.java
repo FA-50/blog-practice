@@ -57,6 +57,13 @@ public class PostService {
         return PostDetailResponse.from(post);
     }
 
+    public PostDetailResponse getPostForEdit(Long postId) {
+        Post post = postRepository.findByPostIdAndStatus(postId, Status.ACTIVATED)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + postId));
+
+        return PostDetailResponse.from(post);
+    }
+
     public void updatePost(Long postId, PostUpdateRequest request){
         Post post = postRepository.findByPostIdAndStatus(postId, Status.ACTIVATED)
                 .orElseThrow(()->new IllegalArgumentException("게시글을 찾을 수 없습니다. id="+postId));

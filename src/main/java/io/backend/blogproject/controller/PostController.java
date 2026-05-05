@@ -64,6 +64,11 @@ public class PostController {
     }
 
 
-
+    // 삭제
+    @PostMapping("/posts/{postId}/delete")
+    public String deletePost(@PathVariable Long postId) {
+        postService.deletePost(postId);
+        return "redirect:/posts";
+    }
 
 }

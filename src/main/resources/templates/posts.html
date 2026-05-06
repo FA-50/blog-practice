@@ -12,8 +12,8 @@
 
     <!-- Header -->
     <header class="flex justify-between items-center mb-8">
-        <a href="/posts" class="text-3xl font-black tracking-tight">
-            Social Blog
+        <a th:href="@{/posts(page=1)}" class="text-3xl font-black tracking-tight">
+            엄니네 블로그
         </a>
 
         <a href="/posts/new"
@@ -30,19 +30,22 @@
             <h2 class="text-2xl font-black mb-6">카테고리</h2>
 
             <div class="space-y-4 text-lg">
-                <a href="/posts"
+                <a th:href="@{/posts(page=1)}"
+                   th:classappend="${selectedCategoryId == null and !noCategory} ? ' text-blue-600' : ''"
                    class="block font-bold hover:text-blue-600">
                     전체보기
                 </a>
 
-                <a href="/posts?filter=none"
+                <a th:href="@{/posts(page=1, noCategory=true)}"
+                   th:classappend="${noCategory} ? ' text-blue-600 font-bold' : ''"
                    class="block text-slate-500 hover:text-blue-600">
                     카테고리 없음
                 </a>
 
                 <div class="border-t pt-4 space-y-3">
                     <a th:each="category : ${categories}"
-                       th:href="@{/posts(categoryId=${category.id})}"
+                       th:href="@{/posts(page=1, categoryId=${category.id})}"
+                       th:classappend="${selectedCategoryId != null and selectedCategoryId == category.id} ? ' text-blue-600' : ''"
                        class="block font-semibold hover:text-blue-600">
                         <span class="text-slate-400">▾</span>
                         <span th:text="${category.title}">카테고리명</span>
@@ -58,6 +61,7 @@
 
         <!-- Post List -->
         <main class="flex-1 bg-white rounded-3xl shadow p-7">
+
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-black">게시글 목록</h1>
             </div>
@@ -78,9 +82,7 @@
 
                             <p class="text-slate-500 mt-3">
                                 카테고리
-                                <span th:text="${post.categoryTitle != null ? post.categoryTitle : '카테고리 없음'}">
-                                    카테고리 없음
-                                </span>
+                                <span>카테고리 없음</span>
 
                                 · 조회수
                                 <span th:text="${post.viewedCnt}">0</span>
@@ -103,25 +105,117 @@
                 </div>
 
             </div>
+
+            <!-- Pagination -->
+            <div th:if="${page != null and page.totalPages > 0}"
+                 class="flex items-center justify-between border-t border-slate-200 px-4 py-5 sm:px-6 mt-8">
+
+                <!-- Mobile pagination -->
+                <div class="flex flex-1 justify-between sm:hidden">
+
+                    <a th:if="${page.hasPrevious}"
+                       th:href="@{/posts(page=${page.currentPage - 1}, categoryId=${selectedCategoryId}, noCategory=${noCategory})}"
+                       class="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                        Previous
+                    </a>
+
+                    <span th:if="${!page.hasPrevious}"
+                          class="relative inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-400">
+                        Previous
+                    </span>
+
+                    <a th:if="${page.hasNext}"
+                       th:href="@{/posts(page=${page.currentPage + 1}, categoryId=${selectedCategoryId}, noCategory=${noCategory})}"
+                       class="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                        Next
+                    </a>
+
+                    <span th:if="${!page.hasNext}"
+                          class="relative ml-3 inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-400">
+                        Next
+                    </span>
+
+                </div>
+
+                <!-- Desktop pagination -->
+                <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+
+                    <div>
+                        <p class="text-sm text-slate-500">
+                            Page
+                            <span class="font-medium" th:text="${page.currentPage}">1</span>
+                            of
+                            <span class="font-medium" th:text="${page.totalPages}">1</span>
+                        </p>
+                    </div>
+
+                    <div>
+                        <nav aria-label="Pagination" class="isolate inline-flex -space-x-px rounded-md shadow-sm">
+
+                            <!-- Previous -->
+                            <a th:if="${page.hasPrevious}"
+                               th:href="@{/posts(page=${page.currentPage - 1}, categoryId=${selectedCategoryId}, noCategory=${noCategory})}"
+                               class="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0">
+                                <span class="sr-only">Previous</span>
+                                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                                    <path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                                          clip-rule="evenodd"
+                                          fill-rule="evenodd"/>
+                                </svg>
+                            </a>
+
+                            <span th:if="${!page.hasPrevious}"
+                                  class="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-300 ring-1 ring-inset ring-slate-200 cursor-not-allowed">
+                                <span class="sr-only">Previous</span>
+                                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                                    <path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                                          clip-rule="evenodd"
+                                          fill-rule="evenodd"/>
+                                </svg>
+                            </span>
+
+                            <!-- Page numbers -->
+                            <a th:each="pageNumber : ${#numbers.sequence(1, page.totalPages)}"
+                               th:href="@{/posts(page=${pageNumber}, categoryId=${selectedCategoryId}, noCategory=${noCategory})}"
+                               th:text="${pageNumber}"
+                               th:aria-current="${pageNumber == page.currentPage ? 'page' : null}"
+                               th:classappend="${pageNumber == page.currentPage}
+                                    ? ' z-10 bg-blue-600 text-white focus-visible:outline-blue-600'
+                                    : ' text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50'"
+                               class="relative inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 focus:outline-offset-0">
+                                1
+                            </a>
+
+                            <!-- Next -->
+                            <a th:if="${page.hasNext}"
+                               th:href="@{/posts(page=${page.currentPage + 1}, categoryId=${selectedCategoryId}, noCategory=${noCategory})}"
+                               class="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0">
+                                <span class="sr-only">Next</span>
+                                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                                    <path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                                          clip-rule="evenodd"
+                                          fill-rule="evenodd"/>
+                                </svg>
+                            </a>
+
+                            <span th:if="${!page.hasNext}"
+                                  class="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-300 ring-1 ring-inset ring-slate-200 cursor-not-allowed">
+                                <span class="sr-only">Next</span>
+                                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                                    <path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                                          clip-rule="evenodd"
+                                          fill-rule="evenodd"/>
+                                </svg>
+                            </span>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
         </main>
 
     </div>
-</div>
-
-<div>
-    <a th:if="${page.hasPrevious}"
-       th:href="@{/posts(page=${page.currentPage - 1})}">
-        이전
-    </a>
-
-    <span th:text="${page.currentPage}">1</span>
-    /
-    <span th:text="${page.totalPages}">1</span>
-
-    <a th:if="${page.hasNext}"
-       th:href="@{/posts(page=${page.currentPage + 1})}">
-        다음
-    </a>
 </div>
 
 </body>

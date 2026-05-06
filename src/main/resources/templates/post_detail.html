@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 상세</title>
+</head>
+<body>
+
+<h1>게시글 상세</h1>
+
+<div>
+    <p>
+        <strong>번호:</strong>
+        <span th:text="${post.postId}">1</span>
+    </p>
+
+    <p>
+        <strong>조회수:</strong>
+        <span th:text="${post.viewedCnt}">1</span>
+    </p>
+
+    <p>
+        <strong>제목:</strong>
+        <span th:text="${post.title}">제목</span>
+    </p>
+
+    <p>
+        <strong>내용:</strong>
+    </p>
+
+    <p th:text="${post.content}">
+        내용
+    </p>
+</div>
+<br>
+<a th:href="@{/posts/{postId}/edit(postId=${post.postId})}">수정</a>
+
+<br>
+<br>
+<form th:action="@{/posts/{postId}/delete(postId=${post.postId})}" method="post">
+    <button type="submit">삭제</button>
+</form>
+<br><br>
+<a href="/posts">목록으로 이동</a>
+
+</body>
+</html>

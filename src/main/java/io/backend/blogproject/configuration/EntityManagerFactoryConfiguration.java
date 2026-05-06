@@ -1,5 +1,8 @@
 package io.backend.blogproject.configuration;
 
+import io.backend.blogproject.domain.entity.Category;
+import io.backend.blogproject.domain.entity.Comment;
+import io.backend.blogproject.domain.entity.Post;
 import org.hibernate.jpa.HibernatePersistenceConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,14 +22,19 @@ public class EntityManagerFactoryConfiguration {
 	private String driverClassName;
 
 
-	@Bean
+	@Bean(name = "entityManagerFactory")
 	public EntityManagerFactory getEntityManagerFactory() {
 
 		HibernatePersistenceConfiguration hpc = new HibernatePersistenceConfiguration("blogproject-hibernate")
 			.jdbcDriver(driverClassName)
 			.jdbcUrl(url)
 			.jdbcUsername(username)
-			.jdbcPassword("");
+			.jdbcPassword("")
+			.managedClass(Comment.class)
+			.managedClass(Post.class)
+			.managedClass(Category.class)
+
+			.property("hibernate.hbm2ddl.auto", "update");
 
 		return hpc.createEntityManagerFactory();
 	}

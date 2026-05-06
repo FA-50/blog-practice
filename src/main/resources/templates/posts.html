@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 목록</title>
+</head>
+<body>
+
+<a th:href="@{/posts/new}">게시글 작성</a>
+
+<h1>게시글 목록</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>번호</th>
+        <th>제목</th>
+        <th>조회수</th>
+        <th>공개 여부</th>
+        <th>작성일</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="post : ${posts}">
+        <td th:text="${post.postId}">1</td>
+        <td>
+            <a th:href="@{/posts/{postId}(postId=${post.postId})}"
+               th:text="${post.title}">
+                제목
+            </a>
+        </td>
+        <td th:text="${post.viewedCnt}">0</td>
+        <td th:text="${post.visibility}">PUBLIC</td>
+        <td th:text="${post.createdAt}">작성일</td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

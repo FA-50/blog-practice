@@ -4,42 +4,94 @@ import io.backend.blogproject.constant.Status;
 import io.backend.blogproject.domain.entity.Category;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.EntityTransaction;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-@RequiredArgsConstructor
 public class CategoryRepository {
 
     private final EntityManagerFactory emf;
 
-    public Optional<Category> findById(Long categoryId) {
+    public CategoryRepository(EntityManagerFactory emf) {
+        this.emf = emf;
+    }
 
-        try (EntityManager em = emf.createEntityManager()) {
+    public void save(Category category) {
+        EntityManager em = emf.createEntityManager();
 
-            String jpql = """
-                    SELECT c
-                    FROM Category c
-                    WHERE c.id = :categoryId
-                    AND c.status = :status
-                    """;
+        try {
+            em.getTransaction().begin();
+            em.persist(category);
+            em.getTransaction().commit();
+        } catch (RuntimeException e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
 
-            List<Category> result = em.createQuery(jpql, Category.class)
+    public Optional<Category> findById(Long id) {
+        EntityManager em = emf.createEntityManager();
 
-                    .setParameter("categoryId", categoryId)
+        try {
+            Category category = em.find(Category.class, id);
+            return Optional.ofNullable(category);
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<Category> findAllActivated() {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            return em.createQuery(
+                            "select c from Category c where c.status = :status",
+                            Category.class
+                    )
                     .setParameter("status", Status.ACTIVATED)
                     .getResultList();
+        } finally {
+            em.close();
+        }
+    }
 
-            return result.stream().findFirst();
+    public void update(Category category) {
+        EntityManager em = emf.createEntityManager();
 
-        } catch (Exception e) {
+        try {
+            em.getTransaction().begin();
+            em.merge(category);
+            em.getTransaction().commit();
+        } catch (RuntimeException e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
 
-            throw new RuntimeException("카테고리 조회에 실패!", e);
+    public void delete(Category category) {
+        EntityManager em = emf.createEntityManager();
 
+        try {
+            em.getTransaction().begin();
+            em.remove(em.contains(category) ? category : em.merge(category));
+            em.getTransaction().commit();
+        } catch (RuntimeException e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
         }
     }
 }

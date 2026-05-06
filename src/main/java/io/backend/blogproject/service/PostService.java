@@ -37,7 +37,7 @@ public class PostService {
         return savedPost.getPostId();
     }
 
-    public List<PostListResponse> getPublicPosts(){
+    public static List<PostListResponse> getPublicPosts(){
         List<Post> posts = postRepository.findAllByStatusAndVisibility(
                 Status.ACTIVATED,
                 Visibility.PUBLIC

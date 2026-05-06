@@ -41,8 +41,9 @@ public class PostController {
     }
 
     // 생성
-    @GetMapping("posts/new")
-    public String createForm(){
+    @GetMapping("/posts/new")
+    public String createForm(Model model){
+        model.addAttribute("categories", categoryService.getCategories());
         return "post_form";
     }
 

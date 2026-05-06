@@ -12,14 +12,14 @@ import java.util.List;
 @Service
 public class CategoryService {
 
-    private final CategoryRepository categoryRepository;
+    private static CategoryRepository categoryRepository = null;
 
     public CategoryService(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<Category> getCategories() {
+    public static List<Category> getCategories() {
         return categoryRepository.findAllActivated();
     }
 

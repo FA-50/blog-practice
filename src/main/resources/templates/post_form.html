@@ -1,36 +1,87 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>게시글 작성</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
 
-<h1>게시글 작성</h1>
+<body class="bg-slate-100 text-slate-800">
 
-<form action="/posts" method="post">
-    <div>
-        <label for="title">제목</label>
-        <input type="text" id="title" name="title">
+<div class="max-w-5xl mx-auto p-6">
+
+    <div class="bg-white rounded-3xl shadow p-8">
+
+        <h1 class="text-3xl font-black mb-8">게시글 작성</h1>
+
+        <form action="/posts" method="post" class="space-y-6">
+
+            <div>
+                <label for="title" class="block font-bold mb-2">제목</label>
+                <input id="title"
+                       type="text"
+                       name="title"
+                       class="w-full border border-slate-300 rounded-2xl px-5 py-4 text-lg"
+                       placeholder="제목을 입력하세요"
+                       required>
+            </div>
+
+            <div>
+                <label for="content" class="block font-bold mb-2">내용</label>
+                <textarea id="content"
+                          name="content"
+                          rows="14"
+                          class="w-full border border-slate-300 rounded-2xl px-5 py-4 text-lg"
+                          placeholder="내용을 입력하세요"
+                          required></textarea>
+            </div>
+
+            <div>
+                <label for="categoryId" class="block font-bold mb-2">카테고리</label>
+                <select id="categoryId"
+                        name="categoryId"
+                        class="w-full border border-slate-300 rounded-2xl px-5 py-4 text-lg">
+                    <option value="">카테고리 없음</option>
+
+                    <option th:each="category : ${categories}"
+                            th:value="${category.id}"
+                            th:text="${category.title}">
+                        카테고리
+                    </option>
+                </select>
+            </div>
+
+            <div>
+                <label for="visibility" class="block font-bold mb-2">공개 여부</label>
+                <select id="visibility"
+                        name="visibility"
+                        class="w-full border border-slate-300 rounded-2xl px-5 py-4 text-lg">
+                    <option value="PUBLIC">공개</option>
+                    <option value="PRIVATE">비공개</option>
+                </select>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="submit"
+                        class="bg-blue-600 text-white px-7 py-4 rounded-2xl font-bold hover:bg-blue-700">
+                    저장
+                </button>
+
+                <a href="/posts"
+                   class="bg-slate-700 text-white px-7 py-4 rounded-2xl font-bold hover:bg-slate-800">
+                    목록으로
+                </a>
+
+                <button type="reset"
+                        class="bg-slate-200 text-slate-700 px-7 py-4 rounded-2xl font-bold">
+                    초기화
+                </button>
+            </div>
+
+        </form>
     </div>
 
-    <div>
-        <label for="content">내용</label>
-        <textarea id="content" name="content"></textarea>
-    </div>
-
-    <div>
-        <label for="visibility">공개 여부</label>
-        <select id="visibility" name="visibility">
-            <option value="PUBLIC">공개</option>
-            <option value="PRIVATE">비공개</option>
-        </select>
-    </div>
-
-    <button type="submit">작성</button>
-</form>
-
-<a th:href="@{/posts}">목록으로</a>
+</div>
 
 </body>
 </html>

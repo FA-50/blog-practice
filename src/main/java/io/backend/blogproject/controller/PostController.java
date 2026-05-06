@@ -31,7 +31,7 @@ public class PostController {
             @RequestParam(defaultValue = "false") boolean noCategory,
             Model model
     ){
-        PostPageResponse response = postService.getPublicPosts(page, categoryId, noCategory);
+        PostResponse.PostPage response = postService.getPublicPosts(page, categoryId, noCategory);
 
         model.addAttribute("page", response);
         model.addAttribute("categories", categoryService.getCategories());

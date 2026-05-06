@@ -30,12 +30,16 @@ public class PostController {
     @GetMapping("/posts")
     public String list(
             @RequestParam(defaultValue = "1") int page,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "false") boolean noCategory,
             Model model
     ){
-        PostPageResponse response = postService.getPublicPosts(page);
+        PostPageResponse response = postService.getPublicPosts(page, categoryId, noCategory);
 
         model.addAttribute("page", response);
         model.addAttribute("posts", response.getPosts());
+        model.addAttribute("selectedCategoryId", categoryId);
+        model.addAttribute("noCategory", noCategory);
 
         return "posts";
     }

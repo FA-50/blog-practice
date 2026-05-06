@@ -170,4 +170,106 @@ public class PostRepository {
             em.close();
         }
     }
+
+    public List<Post> findAllByCategoryIdAndStatusAndVisibility(
+            Long categoryId,
+            Status status,
+            Visibility visibility,
+            int page,
+            int size
+    ) {
+        try (EntityManager em = emf.createEntityManager()) {
+            String jpql = """
+                SELECT p
+                FROM Post p
+                WHERE p.category.id = :categoryId
+                AND p.status = :status
+                AND p.visibility = :visibility
+                ORDER BY p.createdAt DESC
+                """;
+
+            return em.createQuery(jpql, Post.class)
+                    .setParameter("categoryId", categoryId)
+                    .setParameter("status", status)
+                    .setParameter("visibility", visibility)
+                    .setFirstResult(page * size)
+                    .setMaxResults(size)
+                    .getResultList();
+        } catch (Exception e) {
+            throw new RuntimeException("카테고리별 게시글 조회에 실패했습니다.", e);
+        }
+    }
+
+    public long countByCategoryIdAndStatusAndVisibility(
+            Long categoryId,
+            Status status,
+            Visibility visibility
+    ) {
+        try (EntityManager em = emf.createEntityManager()) {
+            String jpql = """
+                SELECT COUNT(p)
+                FROM Post p
+                WHERE p.category.id = :categoryId
+                AND p.status = :status
+                AND p.visibility = :visibility
+                """;
+
+            return em.createQuery(jpql, Long.class)
+                    .setParameter("categoryId", categoryId)
+                    .setParameter("status", status)
+                    .setParameter("visibility", visibility)
+                    .getSingleResult();
+        } catch (Exception e) {
+            throw new RuntimeException("카테고리별 게시글 개수 조회에 실패했습니다.", e);
+        }
+    }
+
+    public List<Post> findAllWithoutCategoryByStatusAndVisibility(
+            Status status,
+            Visibility visibility,
+            int page,
+            int size
+    ) {
+        try (EntityManager em = emf.createEntityManager()) {
+            String jpql = """
+                SELECT p
+                FROM Post p
+                WHERE p.category IS NULL
+                AND p.status = :status
+                AND p.visibility = :visibility
+                ORDER BY p.createdAt DESC
+                """;
+
+            return em.createQuery(jpql, Post.class)
+                    .setParameter("status", status)
+                    .setParameter("visibility", visibility)
+                    .setFirstResult(page * size)
+                    .setMaxResults(size)
+                    .getResultList();
+        } catch (Exception e) {
+            throw new RuntimeException("카테고리 없는 게시글 조회에 실패했습니다.", e);
+        }
+    }
+
+    public long countWithoutCategoryByStatusAndVisibility(
+            Status status,
+            Visibility visibility
+    ) {
+        try (EntityManager em = emf.createEntityManager()) {
+            String jpql = """
+                SELECT COUNT(p)
+                FROM Post p
+                WHERE p.category IS NULL
+                AND p.status = :status
+                AND p.visibility = :visibility
+                """;
+
+            return em.createQuery(jpql, Long.class)
+                    .setParameter("status", status)
+                    .setParameter("visibility", visibility)
+                    .getSingleResult();
+        } catch (Exception e) {
+            throw new RuntimeException("카테고리 없는 게시글 개수 조회에 실패했습니다.", e);
+        }
+    }
 }

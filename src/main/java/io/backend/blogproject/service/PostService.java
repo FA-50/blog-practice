@@ -33,7 +33,7 @@ public class PostService {
         return savedPost.getPostId();
     }
 
-    public PostPageResponse getPublicPosts(int page){
+    public PostPageResponse getPublicPosts(int page, Long categoryId, boolean noCategory){
         int offsetPage = page - 1;
         int size = 10;
 
@@ -41,18 +41,49 @@ public class PostService {
             offsetPage = 0;
         }
 
+        List<Post> posts;
+        long totalElements;
 
-        List<Post> posts = postRepository.findAllByStatusAndVisibility(
-                Status.ACTIVATED,
-                Visibility.PUBLIC,
-                offsetPage,
-                size
-        );
+        if(noCategory){
+            posts = postRepository.findAllWithoutCategoryByStatusAndVisibility(
+                    Status.ACTIVATED,
+                    Visibility.PUBLIC,
+                    offsetPage,
+                    size
+            );
 
-        long totalElements = postRepository.countByStatusAndVisibility(
-                Status.ACTIVATED,
-                Visibility.PUBLIC
-        );
+            totalElements = postRepository.countWithoutCategoryByStatusAndVisibility(
+                    Status.ACTIVATED,
+                    Visibility.PUBLIC
+            );
+        } else if (categoryId != null) {
+            posts = postRepository.findAllByCategoryIdAndStatusAndVisibility(
+                    categoryId,
+                    Status.ACTIVATED,
+                    Visibility.PUBLIC,
+                    offsetPage,
+                    size
+            );
+
+            totalElements = postRepository.countByCategoryIdAndStatusAndVisibility(
+                    categoryId,
+                    Status.ACTIVATED,
+                    Visibility.PUBLIC
+            );
+        }
+            else {
+            posts = postRepository.findAllByStatusAndVisibility(
+                    Status.ACTIVATED,
+                    Visibility.PUBLIC,
+                    offsetPage,
+                    size
+            );
+
+            totalElements = postRepository.countByStatusAndVisibility(
+                    Status.ACTIVATED,
+                    Visibility.PUBLIC
+            );
+        }
 
         int totalPages = (int)Math.ceil((double) totalElements / size);
 

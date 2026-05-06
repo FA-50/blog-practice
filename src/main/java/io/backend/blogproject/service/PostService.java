@@ -2,10 +2,7 @@ package io.backend.blogproject.service;
 
 import io.backend.blogproject.constant.Status;
 import io.backend.blogproject.constant.Visibility;
-import io.backend.blogproject.domain.dto.PostCreateRequest;
-import io.backend.blogproject.domain.dto.PostDetailResponse;
-import io.backend.blogproject.domain.dto.PostListResponse;
-import io.backend.blogproject.domain.dto.PostUpdateRequest;
+import io.backend.blogproject.domain.dto.*;
 import io.backend.blogproject.domain.entity.Category;
 import io.backend.blogproject.domain.entity.Post;
 import io.backend.blogproject.repository.CategoryRepository;
@@ -37,16 +34,52 @@ public class PostService {
         return savedPost.getPostId();
     }
 
-    public List<PostListResponse> getPublicPosts(){
+
+    public PostPageResponse getPublicPosts(int page){
+        int offsetPage = page - 1;
+        int size = 10;
+
+        if(offsetPage < 0){
+            offsetPage = 0;
+        }
+
+
         List<Post> posts = postRepository.findAllByStatusAndVisibility(
+                Status.ACTIVATED,
+                Visibility.PUBLIC,
+                offsetPage,
+                size
+        );
+
+        long totalElements = postRepository.countByStatusAndVisibility(
                 Status.ACTIVATED,
                 Visibility.PUBLIC
         );
 
+        int totalPages = (int)Math.ceil((double) totalElements / size);
 
-        return posts.stream()
+
+        List<PostListResponse> postResponses = posts.stream()
                 .map(PostListResponse::from)
                 .toList();
+
+
+
+        return new PostPageResponse(
+                postResponses,
+                page,
+                totalPages,
+                totalElements,
+                page>1,
+                page<totalPages
+        );
+    }
+
+    public PostDetailResponse getPostWithoutViewCount(Long postId){
+        Post post = postRepository.findByPostIdAndStatusAndVisibility(postId, Status.ACTIVATED, Visibility.PUBLIC)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id="+postId));
+
+        return PostDetailResponse.from(post);
     }
 
     public PostDetailResponse getPost(Long postId){

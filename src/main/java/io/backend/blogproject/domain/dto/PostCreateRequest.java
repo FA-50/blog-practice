@@ -3,8 +3,10 @@ package io.backend.blogproject.domain.dto;
 import io.backend.blogproject.constant.Visibility;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class PostCreateRequest {
 

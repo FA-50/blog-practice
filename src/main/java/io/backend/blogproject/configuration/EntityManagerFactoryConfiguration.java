@@ -1,5 +1,6 @@
 package io.backend.blogproject.configuration;
 
+import io.backend.blogproject.domain.entity.Category;
 import io.backend.blogproject.domain.entity.Comment;
 import io.backend.blogproject.domain.entity.Post;
 import org.hibernate.jpa.HibernatePersistenceConfiguration;
@@ -21,7 +22,7 @@ public class EntityManagerFactoryConfiguration {
 	private String driverClassName;
 
 
-	@Bean
+	@Bean(name = "entityManagerFactory")
 	public EntityManagerFactory getEntityManagerFactory() {
 
 		HibernatePersistenceConfiguration hpc = new HibernatePersistenceConfiguration("blogproject-hibernate")
@@ -31,7 +32,9 @@ public class EntityManagerFactoryConfiguration {
 			.jdbcPassword("")
 			.managedClass(Comment.class)
 			.managedClass(Post.class)
-			.property("hibernate.hbm2ddl.auto", "create-drop");
+			.managedClass(Category.class)
+
+			.property("hibernate.hbm2ddl.auto", "update");
 
 		return hpc.createEntityManagerFactory();
 	}

@@ -58,18 +58,26 @@ public class PostRepository {
         }
     }
 
-    public List<Post> findAllByStatusAndVisibility(Status status, Visibility visibility) {
+    public List<Post> findAllByStatusAndVisibility(
+            Status status,
+            Visibility visibility,
+            int page,
+            int size
+    ) {
         try (EntityManager em = emf.createEntityManager()) {
             String jpql = """
                     SELECT p
                     FROM Post p
                     WHERE p.status = :status
                     AND p.visibility = :visibility
+                    ORDER BY p.createdAt DESC
                     """;
 
             return em.createQuery(jpql, Post.class)
                     .setParameter("status", status)
                     .setParameter("visibility", visibility)
+                    .setFirstResult(page*size)
+                    .setMaxResults(size)
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("공개 게시글 목록 조회에 실패했습니다.", e);
@@ -121,6 +129,24 @@ public class PostRepository {
             return result.stream().findFirst();
         } catch (Exception e) {
             throw new RuntimeException("게시글 조회에 실패했습니다.", e);
+        }
+    }
+
+    public long countByStatusAndVisibility(Status status, Visibility visibility) {
+        try (EntityManager em = emf.createEntityManager()) {
+            String jpql = """
+                SELECT COUNT(p)
+                FROM Post p
+                WHERE p.status = :status
+                AND p.visibility = :visibility
+                """;
+
+            return em.createQuery(jpql, Long.class)
+                    .setParameter("status", status)
+                    .setParameter("visibility", visibility)
+                    .getSingleResult();
+        } catch (Exception e) {
+            throw new RuntimeException("게시글 개수 조회에 실패했습니다.", e);
         }
     }
 

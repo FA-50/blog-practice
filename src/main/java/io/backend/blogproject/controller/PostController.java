@@ -38,6 +38,8 @@ public class PostController {
 
         model.addAttribute("page", response);
         model.addAttribute("posts", response.getPosts());
+        model.addAttribute("categories", categoryService.getCategories());
+
 
         return "posts";
     }
@@ -66,6 +68,8 @@ public class PostController {
 
             response.addCookie(cookie);
         }
+        //        model.addAttribute("comments", commentService.getComments(postId));
+
 
         return "post_detail";
     }
@@ -92,6 +96,7 @@ public class PostController {
     @GetMapping("/posts/{postId}/edit")
     public String updateForm(@PathVariable Long postId, Model model) {
         model.addAttribute("post", postService.getPostForEdit(postId));
+        model.addAttribute("categories", categoryService.getCategories());
         return "post_edit";
     }
 

@@ -61,4 +61,12 @@ public class Category {
     public void softDelete() {
         this.status = Status.REMOVED;
     }
+
+    public boolean isActivated() {
+        return this.status == Status.ACTIVATED;
+    }
+
+    public boolean isRemoved() {
+        return this.status == Status.REMOVED;
+    }
 }

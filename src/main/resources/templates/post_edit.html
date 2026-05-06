@@ -1,38 +1,90 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>게시글 수정</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
 
-<h1>게시글 수정</h1>
+<body class="bg-slate-100 text-slate-800">
 
-<form th:action="@{/posts/{postId}/edit(postId=${post.postId})}" method="post">
-    <div>
-        <label for="title">제목</label>
-        <input type="text" id="title" name="title" th:value="${post.title}">
+<div class="max-w-5xl mx-auto p-6">
+
+    <div class="bg-white rounded-3xl shadow p-8">
+
+        <h1 class="text-3xl font-black mb-8">게시글 수정</h1>
+
+        <form th:action="@{/posts/{postId}/edit(postId=${post.postId})}"
+              method="post"
+              class="space-y-6">
+
+            <div>
+                <label for="title" class="block font-bold mb-2">제목</label>
+                <input id="title"
+                       type="text"
+                       name="title"
+                       th:value="${post.title}"
+                       class="w-full border border-slate-300 rounded-2xl px-5 py-4 text-lg"
+                       required>
+            </div>
+
+            <div>
+                <label for="content" class="block font-bold mb-2">내용</label>
+                <textarea id="content"
+                          name="content"
+                          rows="14"
+                          th:text="${post.content}"
+                          class="w-full border border-slate-300 rounded-2xl px-5 py-4 text-lg"
+                          required></textarea>
+            </div>
+
+            <div>
+                <label for="categoryId" class="block font-bold mb-2">카테고리</label>
+                <select id="categoryId"
+                        name="categoryId"
+                        class="w-full border border-slate-300 rounded-2xl px-5 py-4 text-lg">
+                    <option value="">카테고리 없음</option>
+
+                    <option th:each="category : ${categories}"
+                            th:value="${category.id}"
+                            th:text="${category.title}"
+                            th:selected="${post.categoryId != null and post.categoryId == category.id}">
+                        카테고리
+                    </option>
+                </select>
+            </div>
+
+            <div>
+                <label for="visibility" class="block font-bold mb-2">공개 여부</label>
+                <select id="visibility"
+                        name="visibility"
+                        class="w-full border border-slate-300 rounded-2xl px-5 py-4 text-lg">
+                    <option value="PUBLIC" th:selected="${post.visibility.name() == 'PUBLIC'}">공개</option>
+                    <option value="PRIVATE" th:selected="${post.visibility.name() == 'PRIVATE'}">비공개</option>
+                </select>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="submit"
+                        class="bg-blue-600 text-white px-7 py-4 rounded-2xl font-bold hover:bg-blue-700">
+                    수정
+                </button>
+
+                <a th:href="@{/posts/{postId}(postId=${post.postId})}"
+                   class="bg-slate-700 text-white px-7 py-4 rounded-2xl font-bold hover:bg-slate-800">
+                    상세로
+                </a>
+
+                <a href="/posts"
+                   class="bg-slate-200 text-slate-700 px-7 py-4 rounded-2xl font-bold">
+                    목록으로
+                </a>
+            </div>
+
+        </form>
     </div>
 
-    <div>
-        <label for="content">내용</label>
-        <textarea id="content" name="content" th:text="${post.content}"></textarea>
-    </div>
-
-    <div>
-        <label for="visibility">공개 여부</label>
-        <select id="visibility" name="visibility">
-            <option value="PUBLIC" th:selected="${post.visibility.name() == 'PUBLIC'}">공개</option>
-            <option value="PRIVATE" th:selected="${post.visibility.name() == 'PRIVATE'}">비공개</option>
-        </select>
-    </div>
-
-    <button type="submit">수정</button>
-</form>
-
-<a th:href="@{/posts/{postId}(postId=${post.postId})}">상세로 돌아가기</a>
-<br>
-<a th:href="@{/posts}">목록으로</a>
+</div>
 
 </body>
 </html>

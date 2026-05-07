@@ -274,4 +274,36 @@ public class PostRepository {
             throw new RuntimeException("카테고리 없는 게시글 개수 조회에 실패했습니다.", e);
         }
     }
+
+
+    public void clearCategoryByCategoryId(Long categoryId) {
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+
+        try {
+            tx.begin();
+
+            String jpql = """
+                UPDATE Post p
+                SET p.category = null
+                WHERE p.category.id = :categoryId
+                """;
+
+            em.createQuery(jpql)
+                    .setParameter("categoryId", categoryId)
+                    .executeUpdate();
+
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+
+            throw new RuntimeException("게시글의 카테고리 연결 해제에 실패했습니다.", e);
+        } finally {
+            em.close();
+        }
+
+
+    }
 }

@@ -68,9 +68,10 @@ public class PostRepository {
             String jpql = """
                     SELECT p
                     FROM Post p
+                    LEFT JOIN FETCH p.category
                     WHERE p.status = :status
                     AND p.visibility = :visibility
-                    ORDER BY p.createdAt DESC
+                    ORDER BY p.createdAt DESC, p.postId DESC
                     """;
 
             return em.createQuery(jpql, Post.class)
@@ -180,13 +181,14 @@ public class PostRepository {
     ) {
         try (EntityManager em = emf.createEntityManager()) {
             String jpql = """
-                SELECT p
-                FROM Post p
-                WHERE p.category.id = :categoryId
-                AND p.status = :status
-                AND p.visibility = :visibility
-                ORDER BY p.createdAt DESC
-                """;
+                    SELECT p
+                    FROM Post p
+                    JOIN FETCH p.category c
+                    WHERE c.id = :categoryId
+                    AND p.status = :status
+                    AND p.visibility = :visibility
+                    ORDER BY p.createdAt DESC, p.postId DESC
+                    """;
 
             return em.createQuery(jpql, Post.class)
                     .setParameter("categoryId", categoryId)
@@ -237,7 +239,7 @@ public class PostRepository {
                 WHERE p.category IS NULL
                 AND p.status = :status
                 AND p.visibility = :visibility
-                ORDER BY p.createdAt DESC
+                ORDER BY p.createdAt DESC, p.postId DESC
                 """;
 
             return em.createQuery(jpql, Post.class)
@@ -271,5 +273,37 @@ public class PostRepository {
         } catch (Exception e) {
             throw new RuntimeException("카테고리 없는 게시글 개수 조회에 실패했습니다.", e);
         }
+    }
+
+
+    public void clearCategoryByCategoryId(Long categoryId) {
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+
+        try {
+            tx.begin();
+
+            String jpql = """
+                UPDATE Post p
+                SET p.category = null
+                WHERE p.category.id = :categoryId
+                """;
+
+            em.createQuery(jpql)
+                    .setParameter("categoryId", categoryId)
+                    .executeUpdate();
+
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+
+            throw new RuntimeException("게시글의 카테고리 연결 해제에 실패했습니다.", e);
+        } finally {
+            em.close();
+        }
+
+
     }
 }

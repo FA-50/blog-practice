@@ -3,17 +3,17 @@ package io.backend.blogproject.service;
 import io.backend.blogproject.domain.dto.CategoryRequest;
 import io.backend.blogproject.domain.entity.Category;
 import io.backend.blogproject.repository.CategoryRepository;
+import io.backend.blogproject.repository.PostRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
-
-    public CategoryService(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
+    private final PostRepository postRepository;
 
     public List<Category> getCategories() {
         return categoryRepository.findAllActivated();
@@ -41,6 +41,8 @@ public class CategoryService {
     public void deleteCategory(Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
+
+        postRepository.clearCategoryByCategoryId(categoryId);
 
         category.softDelete();
 

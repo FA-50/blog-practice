@@ -46,14 +46,26 @@ public class PostResponse {
             String title,
             Long viewedCnt,
             Visibility visibility,
+            Long categoryId,
+            String categoryTitle,
             LocalDateTime createdAt
-    ){
-        public static PostResponse.PostList from(Post post){
+    ) {
+        public static PostResponse.PostList from(Post post) {
+            Long categoryId = null;
+            String categoryTitle = "카테고리 없음";
+
+            if (post.getCategory() != null) {
+                categoryId = post.getCategory().getId();
+                categoryTitle = post.getCategory().getTitle();
+            }
+
             return new PostResponse.PostList(
                     post.getPostId(),
                     post.getTitle(),
                     post.getViewedCnt(),
                     post.getVisibility(),
+                    categoryId,
+                    categoryTitle,
                     post.getCreatedAt()
             );
         }

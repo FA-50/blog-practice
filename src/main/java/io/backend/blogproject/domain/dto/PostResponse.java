@@ -1,4 +1,5 @@
 package io.backend.blogproject.domain.dto;
+
 import io.backend.blogproject.constant.Visibility;
 import io.backend.blogproject.domain.entity.Post;
 
@@ -14,10 +15,12 @@ public class PostResponse {
             Visibility visibility,
             Long categoryId,
             String categoryTitle,
+            Long memberId,
+            String memberName,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
-    ){
-        public static PostResponse.PostDetail from(Post post){
+    ) {
+        public static PostDetail from(Post post) {
             Long categoryId = null;
             String categoryTitle = null;
 
@@ -26,7 +29,7 @@ public class PostResponse {
                 categoryTitle = post.getCategory().getTitle();
             }
 
-            return new PostResponse.PostDetail(
+            return new PostDetail(
                     post.getPostId(),
                     post.getTitle(),
                     post.getContent(),
@@ -34,12 +37,13 @@ public class PostResponse {
                     post.getVisibility(),
                     categoryId,
                     categoryTitle,
+                    post.getMember().getMemberId(),
+                    post.getMember().getName(),
                     post.getCreatedAt(),
                     post.getUpdatedAt()
             );
         }
     }
-
 
     public record PostList(
             Long postId,
@@ -48,9 +52,11 @@ public class PostResponse {
             Visibility visibility,
             Long categoryId,
             String categoryTitle,
+            Long memberId,
+            String memberName,
             LocalDateTime createdAt
     ) {
-        public static PostResponse.PostList from(Post post) {
+        public static PostList from(Post post) {
             Long categoryId = null;
             String categoryTitle = "카테고리 없음";
 
@@ -59,13 +65,15 @@ public class PostResponse {
                 categoryTitle = post.getCategory().getTitle();
             }
 
-            return new PostResponse.PostList(
+            return new PostList(
                     post.getPostId(),
                     post.getTitle(),
                     post.getViewedCnt(),
                     post.getVisibility(),
                     categoryId,
                     categoryTitle,
+                    post.getMember().getMemberId(),
+                    post.getMember().getName(),
                     post.getCreatedAt()
             );
         }
@@ -78,5 +86,6 @@ public class PostResponse {
             long totalElements,
             boolean hasPrevious,
             boolean hasNext
-    ){}
+    ) {
+    }
 }

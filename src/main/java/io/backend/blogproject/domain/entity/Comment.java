@@ -38,17 +38,23 @@ public class Comment {
     @JoinColumn(name = "parent_id")
     private Comment parentId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "post_id")
     private Post post;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Members member;
 
 
     private Comment(
             Post post,
-            String content
+            String content,
+            Members member
     ){
         this.post = post;
         this.content = content;
+        this.member = member;
         this.status = Status.ACTIVATED;
         createdAt = LocalDateTime.now();
     }
@@ -63,15 +69,18 @@ public class Comment {
 
     public static Comment createComment(
         Post post,
-        String content
+        String content,
+        Members member
     ){
         validateCreation(post,content);
 
-        Comment comment = new Comment(post,content);
+        Comment comment = new Comment(post, content, member);
 
         comment.setParentComment(null);
 
         post.mappedByComment(comment);
+
+        member.addComment(comment);
 
         return comment;
     }
@@ -79,19 +88,36 @@ public class Comment {
     public static Comment replyComment(
             Post post,
             String content,
-            Comment parentComment
+            Comment parentComment,
+            Members member
     ){
         validateCreation(post,content);
         if(parentComment == null) throw new RuntimeException(ErrorCode.NO_PARENT_COMMENT.message);
 
-        Comment comment = new Comment(post,content);
+        Comment comment = new Comment(post, content, member);
 
         post.mappedByComment(comment);
 
         comment.setParentComment(parentComment);
         parentComment.setChildComment(comment);
+        member.addComment(comment);
 
         return comment;
+    }
+
+    public void update(String content) {
+        if (Strings.isEmpty(content)) {
+            throw new RuntimeException(ErrorCode.NO_COMMENT.message);
+        }
+        this.content = content;
+    }
+
+    public boolean isWrittenBy(Long memberId) {
+        return member != null && member.getMemberId().equals(memberId);
+    }
+
+    public boolean belongsTo(Long postId) {
+        return post != null && post.getPostId().equals(postId);
     }
 
     public void delete(){

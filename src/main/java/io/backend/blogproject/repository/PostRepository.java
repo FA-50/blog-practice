@@ -3,307 +3,47 @@ package io.backend.blogproject.repository;
 import io.backend.blogproject.constant.Status;
 import io.backend.blogproject.constant.Visibility;
 import io.backend.blogproject.domain.entity.Post;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.EntityTransaction;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 
-@Repository
-@RequiredArgsConstructor
-public class PostRepository {
+public interface PostRepository extends JpaRepository<Post, Long> {
 
-    private final EntityManagerFactory emf;
+    @EntityGraph(attributePaths = {"category", "member"})
+    Page<Post> findAllByStatusAndVisibility(Status status, Visibility visibility, Pageable pageable);
 
-    public Post save(Post post){
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
-
-        try{
-            tx.begin();
-
-            em.persist(post);
-
-            tx.commit();
-
-            return post;
-        } catch (Exception e){
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-
-            throw new RuntimeException("게시글 저장에 실패했습니다.", e);
-        } finally {
-            em.close();
-        }
-
-    }
-
-    public List<Post> findAllByStatus(Status status) {
-        try (EntityManager em = emf.createEntityManager()) {
-            String jpql = """
-                    SELECT p
-                    FROM Post p
-                    WHERE p.status = :status
-                    """;
-
-            return em.createQuery(jpql, Post.class)
-                    .setParameter("status", status)
-                    .getResultList();
-        } catch (Exception e) {
-            throw new RuntimeException("게시글 목록 조회에 실패했습니다.", e);
-        }
-    }
-
-    public List<Post> findAllByStatusAndVisibility(
+    @EntityGraph(attributePaths = {"category", "member"})
+    Page<Post> findAllByCategory_IdAndStatusAndVisibility(
+            Long categoryId,
             Status status,
             Visibility visibility,
-            int page,
-            int size
-    ) {
-        try (EntityManager em = emf.createEntityManager()) {
-            String jpql = """
-                    SELECT p
-                    FROM Post p
-                    LEFT JOIN FETCH p.category
-                    WHERE p.status = :status
-                    AND p.visibility = :visibility
-                    ORDER BY p.createdAt DESC, p.postId DESC
-                    """;
+            Pageable pageable
+    );
 
-            return em.createQuery(jpql, Post.class)
-                    .setParameter("status", status)
-                    .setParameter("visibility", visibility)
-                    .setFirstResult(page*size)
-                    .setMaxResults(size)
-                    .getResultList();
-        } catch (Exception e) {
-            throw new RuntimeException("공개 게시글 목록 조회에 실패했습니다.", e);
-        }
-    }
+    @EntityGraph(attributePaths = {"category", "member"})
+    Page<Post> findAllByCategoryIsNullAndStatusAndVisibility(
+            Status status,
+            Visibility visibility,
+            Pageable pageable
+    );
 
-    public Optional<Post> findByPostIdAndStatus(Long postId, Status status) {
-        try (EntityManager em = emf.createEntityManager()) {
-            String jpql = """
-                    SELECT p
-                    FROM Post p
-                    LEFT JOIN FETCH p.category
-                    WHERE p.postId = :postId
-                    AND p.status = :status
-                    """;
+    @EntityGraph(attributePaths = {"category", "member"})
+    Optional<Post> findByPostIdAndStatus(Long postId, Status status);
 
-            List<Post> result = em.createQuery(jpql, Post.class)
-                    .setParameter("postId", postId)
-                    .setParameter("status", status)
-                    .getResultList();
-
-            return result.stream().findFirst();
-        } catch (Exception e) {
-            throw new RuntimeException("게시글 조회에 실패했습니다.", e);
-        }
-    }
-
-    public Optional<Post> findByPostIdAndStatusAndVisibility(
+    @EntityGraph(attributePaths = {"category", "member"})
+    Optional<Post> findByPostIdAndStatusAndVisibility(
             Long postId,
             Status status,
             Visibility visibility
-    ) {
-        try (EntityManager em = emf.createEntityManager()) {
-            String jpql = """
-                SELECT p
-                FROM Post p
-                LEFT JOIN FETCH p.category
-                WHERE p.postId = :postId
-                AND p.status = :status
-                AND p.visibility = :visibility
-                """;
+    );
 
-            List<Post> result = em.createQuery(jpql, Post.class)
-                    .setParameter("postId", postId)
-                    .setParameter("status", status)
-                    .setParameter("visibility", visibility)
-                    .getResultList();
-
-            return result.stream().findFirst();
-        } catch (Exception e) {
-            throw new RuntimeException("게시글 조회에 실패했습니다.", e);
-        }
-    }
-
-    public long countByStatusAndVisibility(Status status, Visibility visibility) {
-        try (EntityManager em = emf.createEntityManager()) {
-            String jpql = """
-                SELECT COUNT(p)
-                FROM Post p
-                WHERE p.status = :status
-                AND p.visibility = :visibility
-                """;
-
-            return em.createQuery(jpql, Long.class)
-                    .setParameter("status", status)
-                    .setParameter("visibility", visibility)
-                    .getSingleResult();
-        } catch (Exception e) {
-            throw new RuntimeException("게시글 개수 조회에 실패했습니다.", e);
-        }
-    }
-
-    public void update(Post post) {
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
-
-        try {
-            tx.begin();
-
-            em.merge(post);
-
-            tx.commit();
-        } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-
-            throw new RuntimeException("게시글 수정에 실패했습니다.", e);
-        } finally {
-            em.close();
-        }
-    }
-
-    public List<Post> findAllByCategoryIdAndStatusAndVisibility(
-            Long categoryId,
-            Status status,
-            Visibility visibility,
-            int page,
-            int size
-    ) {
-        try (EntityManager em = emf.createEntityManager()) {
-            String jpql = """
-                    SELECT p
-                    FROM Post p
-                    JOIN FETCH p.category c
-                    WHERE c.id = :categoryId
-                    AND p.status = :status
-                    AND p.visibility = :visibility
-                    ORDER BY p.createdAt DESC, p.postId DESC
-                    """;
-
-            return em.createQuery(jpql, Post.class)
-                    .setParameter("categoryId", categoryId)
-                    .setParameter("status", status)
-                    .setParameter("visibility", visibility)
-                    .setFirstResult(page * size)
-                    .setMaxResults(size)
-                    .getResultList();
-        } catch (Exception e) {
-            throw new RuntimeException("카테고리별 게시글 조회에 실패했습니다.", e);
-        }
-    }
-
-    public long countByCategoryIdAndStatusAndVisibility(
-            Long categoryId,
-            Status status,
-            Visibility visibility
-    ) {
-        try (EntityManager em = emf.createEntityManager()) {
-            String jpql = """
-                SELECT COUNT(p)
-                FROM Post p
-                WHERE p.category.id = :categoryId
-                AND p.status = :status
-                AND p.visibility = :visibility
-                """;
-
-            return em.createQuery(jpql, Long.class)
-                    .setParameter("categoryId", categoryId)
-                    .setParameter("status", status)
-                    .setParameter("visibility", visibility)
-                    .getSingleResult();
-        } catch (Exception e) {
-            throw new RuntimeException("카테고리별 게시글 개수 조회에 실패했습니다.", e);
-        }
-    }
-
-    public List<Post> findAllWithoutCategoryByStatusAndVisibility(
-            Status status,
-            Visibility visibility,
-            int page,
-            int size
-    ) {
-        try (EntityManager em = emf.createEntityManager()) {
-            String jpql = """
-                SELECT p
-                FROM Post p
-                WHERE p.category IS NULL
-                AND p.status = :status
-                AND p.visibility = :visibility
-                ORDER BY p.createdAt DESC, p.postId DESC
-                """;
-
-            return em.createQuery(jpql, Post.class)
-                    .setParameter("status", status)
-                    .setParameter("visibility", visibility)
-                    .setFirstResult(page * size)
-                    .setMaxResults(size)
-                    .getResultList();
-        } catch (Exception e) {
-            throw new RuntimeException("카테고리 없는 게시글 조회에 실패했습니다.", e);
-        }
-    }
-
-    public long countWithoutCategoryByStatusAndVisibility(
-            Status status,
-            Visibility visibility
-    ) {
-        try (EntityManager em = emf.createEntityManager()) {
-            String jpql = """
-                SELECT COUNT(p)
-                FROM Post p
-                WHERE p.category IS NULL
-                AND p.status = :status
-                AND p.visibility = :visibility
-                """;
-
-            return em.createQuery(jpql, Long.class)
-                    .setParameter("status", status)
-                    .setParameter("visibility", visibility)
-                    .getSingleResult();
-        } catch (Exception e) {
-            throw new RuntimeException("카테고리 없는 게시글 개수 조회에 실패했습니다.", e);
-        }
-    }
-
-
-    public void clearCategoryByCategoryId(Long categoryId) {
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
-
-        try {
-            tx.begin();
-
-            String jpql = """
-                UPDATE Post p
-                SET p.category = null
-                WHERE p.category.id = :categoryId
-                """;
-
-            em.createQuery(jpql)
-                    .setParameter("categoryId", categoryId)
-                    .executeUpdate();
-
-            tx.commit();
-        } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-
-            throw new RuntimeException("게시글의 카테고리 연결 해제에 실패했습니다.", e);
-        } finally {
-            em.close();
-        }
-
-
-    }
+    @Modifying(flushAutomatically = true)
+    @Query("update Post p set p.category = null where p.category.id = :categoryId")
+    void clearCategoryByCategoryId(@Param("categoryId") Long categoryId);
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>게시글 목록</title>
@@ -13,13 +14,19 @@
     <!-- Header -->
     <header class="flex justify-between items-center mb-8">
         <a th:href="@{/posts(page=1)}" class="text-3xl font-black tracking-tight">
-            엄니네 블로그
+            엄니네 클론 블로그
         </a>
 
-        <a href="/posts/new"
+        <a href="/posts/new" sec:authorize="isAuthenticated()"
            class="bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold shadow hover:bg-blue-700">
             글쓰기
         </a>
+        <form action="/api/auth/logout" method="post" sec:authorize="isAuthenticated()">
+            <button type="submit"
+                    class="bg-slate-700 text-white px-5 py-3 rounded-2xl font-bold shadow hover:bg-slate-800">
+                로그아웃
+            </button>
+        </form>
     </header>
 
     <!-- Main Layout -->
@@ -81,6 +88,8 @@
                             </a>
 
                             <p class="text-slate-500 mt-3">
+                                <span th:text="${post.memberName}">작성자</span>
+                                ·
 <!--                                카테고리-->
                                 <span th:text="${post.categoryTitle}">카테고리 없음</span>
 

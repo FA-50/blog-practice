@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -55,15 +54,20 @@ public class Post {
     @OneToMany(mappedBy = "post")
     private List<Comment> comments = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Members member;
 
     @Builder
-    public Post(String title, String content, Visibility visibility, Category category ) {
+    public Post(String title, String content, Visibility visibility, Category category, Members member ) {
         this.title = title;
         this.content = content;
         this.visibility = visibility;
         this.category = category;
         this.viewedCnt = 0L;
         this.status = Status.ACTIVATED;
+        this.member = member;
+        this.member.addPost(this);
     }
 
     @PrePersist
@@ -120,6 +124,10 @@ public class Post {
 
     public boolean isPublic(){
         return this.visibility == Visibility.PUBLIC;
+    }
+
+    public boolean isWrittenBy(Long memberId) {
+        return member != null && member.getMemberId().equals(memberId);
     }
 
 }

@@ -4,4 +4,8 @@ public class CommentRequest {
     public record Create(
             String content
     ){}
+
+    public record Update(
+            String content
+    ){}
 }

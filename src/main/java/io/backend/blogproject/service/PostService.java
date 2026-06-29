@@ -1,164 +1,146 @@
 package io.backend.blogproject.service;
 
+import io.backend.blogproject.common.CustomException;
+import io.backend.blogproject.constant.ErrorCode;
 import io.backend.blogproject.constant.Status;
 import io.backend.blogproject.constant.Visibility;
 import io.backend.blogproject.domain.dto.PostRequest;
 import io.backend.blogproject.domain.dto.PostResponse;
 import io.backend.blogproject.domain.entity.Category;
+import io.backend.blogproject.domain.entity.Members;
 import io.backend.blogproject.domain.entity.Post;
 import io.backend.blogproject.repository.CategoryRepository;
+import io.backend.blogproject.repository.MemberRepository;
 import io.backend.blogproject.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PostService {
 
     private final PostRepository postRepository;
     private final CategoryRepository categoryRepository;
+    private final MemberRepository memberRepository;
 
-    public Long createPost(PostRequest.Create request){
+    @Transactional
+    public Long createPost(Long memberId, PostRequest.Create request) {
         Category category = findCategoryOrNull(request.categoryId());
+        Members member = memberRepository.findByIdOrThrow(memberId);
 
         Post post = Post.builder()
                 .title(request.title())
                 .content(request.content())
                 .visibility(request.visibility())
                 .category(category)
+                .member(member)
                 .build();
 
-        Post savedPost = postRepository.save(post);
-
-        return savedPost.getPostId();
+        return postRepository.save(post).getPostId();
     }
 
-    public PostResponse.PostPage getPublicPosts(int page, Long categoryId, boolean noCategory){
-        int offsetPage = page - 1;
-        int size = 10;
+    public PostResponse.PostPage getPublicPosts(int page, Long categoryId, boolean noCategory) {
+        int offsetPage = Math.max(page - 1, 0);
+        PageRequest pageable = PageRequest.of(
+                offsetPage,
+                10,
+                Sort.by(Sort.Direction.DESC, "createdAt", "postId")
+        );
 
-        if(offsetPage < 0){
-            offsetPage = 0;
-        }
-
-        List<Post> posts;
-        long totalElements;
-
-        if(noCategory){
-            posts = postRepository.findAllWithoutCategoryByStatusAndVisibility(
-                    Status.ACTIVATED,
-                    Visibility.PUBLIC,
-                    offsetPage,
-                    size
-            );
-
-            totalElements = postRepository.countWithoutCategoryByStatusAndVisibility(
-                    Status.ACTIVATED,
-                    Visibility.PUBLIC
+        org.springframework.data.domain.Page<Post> postPage;
+        if (noCategory) {
+            postPage = postRepository.findAllByCategoryIsNullAndStatusAndVisibility(
+                    Status.ACTIVATED, Visibility.PUBLIC, pageable
             );
         } else if (categoryId != null) {
-            posts = postRepository.findAllByCategoryIdAndStatusAndVisibility(
-                    categoryId,
-                    Status.ACTIVATED,
-                    Visibility.PUBLIC,
-                    offsetPage,
-                    size
+            postPage = postRepository.findAllByCategory_IdAndStatusAndVisibility(
+                    categoryId, Status.ACTIVATED, Visibility.PUBLIC, pageable
             );
-
-            totalElements = postRepository.countByCategoryIdAndStatusAndVisibility(
-                    categoryId,
-                    Status.ACTIVATED,
-                    Visibility.PUBLIC
-            );
-        }
-            else {
-            posts = postRepository.findAllByStatusAndVisibility(
-                    Status.ACTIVATED,
-                    Visibility.PUBLIC,
-                    offsetPage,
-                    size
-            );
-
-            totalElements = postRepository.countByStatusAndVisibility(
-                    Status.ACTIVATED,
-                    Visibility.PUBLIC
+        } else {
+            postPage = postRepository.findAllByStatusAndVisibility(
+                    Status.ACTIVATED, Visibility.PUBLIC, pageable
             );
         }
 
-        int totalPages = (int)Math.ceil((double) totalElements / size);
-
-
-        List<PostResponse.PostList> postResponses = posts.stream()
+        List<PostResponse.PostList> responses = postPage.getContent().stream()
                 .map(PostResponse.PostList::from)
                 .toList();
 
-
-
         return new PostResponse.PostPage(
-                postResponses,
+                responses,
                 page,
-                totalPages,
-                totalElements,
-                page>1,
-                page<totalPages
+                postPage.getTotalPages(),
+                postPage.getTotalElements(),
+                postPage.hasPrevious(),
+                postPage.hasNext()
         );
     }
 
-    public PostResponse.PostDetail getPostWithoutViewCount(Long postId){
-        Post post = postRepository.findByPostIdAndStatusAndVisibility(postId, Status.ACTIVATED, Visibility.PUBLIC)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id="+postId));
-
-        return PostResponse.PostDetail.from(post);
+    public PostResponse.PostDetail getPostWithoutViewCount(Long postId) {
+        return PostResponse.PostDetail.from(findPublicPost(postId));
     }
 
-    public PostResponse.PostDetail getPost(Long postId){
-        Post post = postRepository.findByPostIdAndStatusAndVisibility(postId, Status.ACTIVATED, Visibility.PUBLIC)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id="+postId));
+    @Transactional
+    public PostResponse.PostDetail getPost(Long postId) {
+        Post post = findPublicPost(postId);
         post.increaseViewCount();
-        postRepository.update(post);
-
         return PostResponse.PostDetail.from(post);
     }
 
-    public PostResponse.PostDetail getPostForEdit(Long postId) {
-        Post post = postRepository.findByPostIdAndStatus(postId, Status.ACTIVATED)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + postId));
-
+    public PostResponse.PostDetail getPostForEdit(Long memberId, Long postId) {
+        Post post = findActivePost(postId);
+        validateOwner(post, memberId);
         return PostResponse.PostDetail.from(post);
     }
 
-    public void updatePost(Long postId, PostRequest.Update request){
-        Post post = postRepository.findByPostIdAndStatus(postId, Status.ACTIVATED)
-                .orElseThrow(()->new IllegalArgumentException("게시글을 찾을 수 없습니다. id="+postId));
-
-
-        Category category = findCategoryOrNull(request.categoryId());
-
+    @Transactional
+    public void updatePost(Long memberId, Long postId, PostRequest.Update request) {
+        Post post = findActivePost(postId);
+        validateOwner(post, memberId);
 
         post.update(
                 request.title(),
                 request.content(),
                 request.visibility(),
-                category
+                findCategoryOrNull(request.categoryId())
         );
-        postRepository.update(post);
     }
 
-    public void deletePost(Long postId){
-        Post post = postRepository.findByPostIdAndStatus(postId, Status.ACTIVATED)
-                .orElseThrow(()-> new IllegalArgumentException("게시글을 찾을 수 없습니다. id="+postId));
-
+    @Transactional
+    public void deletePost(Long memberId, Long postId) {
+        Post post = findActivePost(postId);
+        validateOwner(post, memberId);
         post.remove();
-        postRepository.update(post);
+    }
+
+    private Post findPublicPost(Long postId) {
+        return postRepository.findByPostIdAndStatusAndVisibility(
+                        postId, Status.ACTIVATED, Visibility.PUBLIC
+                )
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+    }
+
+    private Post findActivePost(Long postId) {
+        return postRepository.findByPostIdAndStatus(postId, Status.ACTIVATED)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+    }
+
+    private void validateOwner(Post post, Long memberId) {
+        if (!post.isWrittenBy(memberId)) {
+            throw new CustomException(ErrorCode.POST_ACCESS_DENIED);
+        }
     }
 
     private Category findCategoryOrNull(Long categoryId) {
         if (categoryId == null) {
             return null;
         }
-
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다. id=" + categoryId));
     }

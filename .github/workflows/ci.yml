@@ -64,3 +64,10 @@ jobs:
           tags: |
             type=raw,value=${{needs.tagging.outputs.tag_name}}
             type=raw,value=latest
+      - name: 빌드 및 이미지 푸시
+        uses: docker/build-push-action@v7
+        with:
+          file: .
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}

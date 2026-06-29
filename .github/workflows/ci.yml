@@ -71,3 +71,13 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+  deploy:
+    runs-on: self-hosted
+    needs: build-push-image
+    steps:
+      - name: 배포
+        run: |
+          cd /home/ubuntu
+          sudo docker compose down
+          sudo docker compose pull
+          sudo docker compose up -d

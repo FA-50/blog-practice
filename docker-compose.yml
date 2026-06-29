@@ -1,0 +1,20 @@
+#name: for-production
+#
+#services:
+#  webserver:
+#    image: nginx:latest
+#    container_name: blog-web
+#    ports:
+#      - "80:80"
+#      - "443:443"
+#    networks:
+#      - assetbox
+#    depends_on:
+#
+#  backend:
+#    image:
+#volumes:
+#  mysql_data:
+#networks:
+#  assetbox:
+#    driver: bridge

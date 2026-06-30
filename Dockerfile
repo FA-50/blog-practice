@@ -9,4 +9,7 @@ FROM eclipse-temurin:25-jre
 VOLUME /tmp
 EXPOSE 8080
 COPY --from=build /home/app/build/libs/*.jar /app.jar
-ENTRYPOINT ["sh", "-c", "java -jar /app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Dspring.profiles.default=prod -jar /app.jar"]
+
+
+

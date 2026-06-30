@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  config:
+    import: optional:file:.env.production[.properties]
+  application:
+    name: shooong-backend
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+custom:
+  BASE_URL: ${BASE_URL}
+  appkey: ${BASE_64_KEY}
+  validations:
+    access: ${ACCESSTOKENTIME}
+    refresh: ${REFRESHTOKENTIME}
